@@ -35,15 +35,29 @@ async def test_primitive_values(bidi_session, top_context, expression, expected)
 @pytest.mark.parametrize(
     "expression, expected",
     [
-        ("(Symbol('foo'))", {"type": "symbol", },),
+        (
+            "(Symbol('foo'))",
+            {
+                "type": "symbol",
+            },
+        ),
         (
             "[1, 'foo', true, new RegExp(/foo/g), [1]]",
             {
                 "type": "array",
                 "value": [
-                    {"type": "number", "value": 1},
-                    {"type": "string", "value": "foo"},
-                    {"type": "boolean", "value": True},
+                    {
+                        "type": "number",
+                        "value": 1
+                    },
+                    {
+                        "type": "string",
+                        "value": "foo"
+                    },
+                    {
+                        "type": "boolean",
+                        "value": True
+                    },
                     {
                         "type": "regexp",
                         "value": {
@@ -51,7 +65,9 @@ async def test_primitive_values(bidi_session, top_context, expression, expected)
                             "flags": "g",
                         },
                     },
-                    {"type": "array"},
+                    {
+                        "type": "array"
+                    },
                 ],
             },
         ),
@@ -60,17 +76,48 @@ async def test_primitive_values(bidi_session, top_context, expression, expected)
             {
                 "type": "object",
                 "value": [
-                    ["1", {"type": "string", "value": "fred"}],
-                    ["2", {"type": "string", "value": "thud"}],
-                    ["foo", {"type": "object"}],
-                    ["qux", {"type": "string", "value": "quux"}],
+                    ["1", {
+                        "type": "string",
+                        "value": "fred"
+                    }],
+                    ["2", {
+                        "type": "string",
+                        "value": "thud"
+                    }],
+                    ["foo", {
+                        "type": "object"
+                    }],
+                    ["qux", {
+                        "type": "string",
+                        "value": "quux"
+                    }],
                 ],
             },
         ),
-        ("(()=>{})", {"type": "function", },),
-        ("(function(){})", {"type": "function", },),
-        ("(async ()=>{})", {"type": "function", },),
-        ("(async function(){})", {"type": "function", },),
+        (
+            "(()=>{})",
+            {
+                "type": "function",
+            },
+        ),
+        (
+            "(function(){})",
+            {
+                "type": "function",
+            },
+        ),
+        (
+            "(async ()=>{})",
+            {
+                "type": "function",
+            },
+        ),
+        (
+            "(async function(){})",
+            {
+                "type": "function",
+            },
+        ),
         (
             "new RegExp(/foo/g)",
             {
@@ -94,15 +141,32 @@ async def test_primitive_values(bidi_session, top_context, expression, expected)
                 "type": "map",
                 "value": [
                     [
-                        {"type": "number", "value": 1},
-                        {"type": "number", "value": 2},
+                        {
+                            "type": "number",
+                            "value": 1
+                        },
+                        {
+                            "type": "number",
+                            "value": 2
+                        },
                     ],
-                    ["foo", {"type": "string", "value": "bar"}],
+                    ["foo", {
+                        "type": "string",
+                        "value": "bar"
+                    }],
                     [
-                        {"type": "boolean", "value": True},
-                        {"type": "boolean", "value": False},
+                        {
+                            "type": "boolean",
+                            "value": True
+                        },
+                        {
+                            "type": "boolean",
+                            "value": False
+                        },
                     ],
-                    ["baz", {"type": "array"}],
+                    ["baz", {
+                        "type": "array"
+                    }],
                 ],
             },
         ),
@@ -111,27 +175,87 @@ async def test_primitive_values(bidi_session, top_context, expression, expected)
             {
                 "type": "set",
                 "value": [
-                    {"type": "number", "value": 1},
-                    {"type": "string", "value": "foo"},
-                    {"type": "boolean", "value": True},
-                    {"type": "array"},
-                    {"type": "map"},
+                    {
+                        "type": "number",
+                        "value": 1
+                    },
+                    {
+                        "type": "string",
+                        "value": "foo"
+                    },
+                    {
+                        "type": "boolean",
+                        "value": True
+                    },
+                    {
+                        "type": "array"
+                    },
+                    {
+                        "type": "map"
+                    },
                 ],
             },
         ),
-        ("new WeakMap()", {"type": "weakmap", },),
-        ("new WeakSet()", {"type": "weakset", },),
-        ("new Error('SOME_ERROR_TEXT')", {"type": "error"},),
-        # TODO(sadym): add `iterator` test.
-        # TODO(sadym): add `generator` test.
-        # TODO(sadym): add `proxy` test.
-        ("Promise.resolve()", {"type": "promise", },),
-        ("new Int32Array()", {"type": "typedarray", },),
-        ("new ArrayBuffer()", {"type": "arraybuffer", },),
-        ("window", {"type": "window", },),
-        ("new URL('https://example.com')", {"type": "object", },),
-    ]
-)
+        (
+            "new WeakMap()",
+            {
+                "type": "weakmap",
+            },
+        ),
+        (
+            "new WeakSet()",
+            {
+                "type": "weakset",
+            },
+        ),
+        (
+            "new Error('SOME_ERROR_TEXT')",
+            {
+                "type": "error"
+            },
+        ),
+        ("([1, 2][Symbol.iterator]())", {
+            "type": "object",
+            "value": [],
+        }),
+        ("new Proxy({}, {})", {
+            "type": "proxy"
+        }),
+        # generator
+        ("(function*() { yield 'a'; })", {
+            "type": "function"
+        }),
+        (
+            "Promise.resolve()",
+            {
+                "type": "promise",
+            },
+        ),
+        (
+            "new Int32Array()",
+            {
+                "type": "typedarray",
+            },
+        ),
+        (
+            "new ArrayBuffer()",
+            {
+                "type": "arraybuffer",
+            },
+        ),
+        (
+            "window",
+            {
+                "type": "window",
+            },
+        ),
+        (
+            "new URL('https://example.com')",
+            {
+                "type": "object",
+            },
+        ),
+    ])
 async def test_remote_values(bidi_session, top_context, expression, expected):
     result = await bidi_session.script.evaluate(
         expression=expression,
