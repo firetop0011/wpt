@@ -4,20 +4,70 @@
 
 "use strict;"
 
-// Directory of fledge
-const FLEDGE_DIR = '/fledge/tentative/';
 const FULL_URL = window.location.href;
 let BASE_URL = FULL_URL.substring(0, FULL_URL.lastIndexOf('/') + 1)
 const BASE_PATH = (new URL(BASE_URL)).pathname;
 const DEFAULT_INTEREST_GROUP_NAME = 'default name';
 
-// Use python source files under fledge directory
-BASE_URL = BASE_URL.replace(BASE_PATH, FLEDGE_DIR);
+// Use python script files under fledge directory
+const FLEDGE_DIR = '/fledge/tentative/';
+const FLEDGE_BASE_URL = BASE_URL.replace(BASE_PATH, FLEDGE_DIR);
+
+/**
+ * Delay method that waits for prescribed number of milliseconds.
+ */
+const delay = ms => new Promise(resolve => step_timeout(resolve, ms));
 
 // Generates a UUID by token.
-function generateUuid(test) {
+function generateUuid() {
   let uuid = token();
   return uuid;
+}
+
+// Creates a URL that will be sent to the report-lite script.
+// `uuid` is used to identify the stash shard to use.
+// `operate` is used to set action as dispatch or retrieve.
+// `report` is used to carry the message for dispatch request.
+function createReportingUrl(uuid, operation, report = null) {
+  let url = new URL(`${window.location.origin}${BASE_PATH}resources/report-lite.py`);
+  url.searchParams.append('uuid', uuid);
+  url.searchParams.append('operation', operation);
+
+  if (report)
+    url.searchParams.append('report', report);
+
+  return url.toString();
+}
+
+function createDispatchUrl(uuid, report) {
+  return createReportingUrl(uuid, 'dispatch', report);
+}
+
+function createRetrieveUrl(uuid) {
+  return createReportingUrl(uuid, 'retrieve');
+}
+
+async function waitForObservedReports(uuid, expectedReports, timeout = 20000) {
+  // Sort array for easier comparison.
+  expectedReports.sort();
+  const reportUrl = createRetrieveUrl(uuid);
+  let startTime = performance.now();
+
+  while (performance.now() - startTime < timeout) {
+    let response = await fetch(reportUrl, { credentials: 'omit', mode: 'cors' });
+    let reportData = await response.json();
+
+    // If expected number of reports have been observed, compare with list of
+    // all expected reports and exit.
+    let actualReports = reportData;
+    if (actualReports.length == expectedReports.length) {
+      assert_array_equals(actualReports.sort(), expectedReports);
+      return;
+    }
+
+    await delay(/*ms=*/ 1000);
+  }
+  assert_unreached("Report fetching is timeout: " + uuid);
 }
 
 // Creates a bidding script with the provided code in the method bodies. The
@@ -27,7 +77,7 @@ function generateUuid(test) {
 //
 // The default reportWin() method is empty.
 function createBiddingScriptUrl(params = {}) {
-  let url = new URL(`${BASE_URL}resources/bidding-logic.sub.py`);
+  let url = new URL(`${FLEDGE_BASE_URL}resources/bidding-logic.sub.py`);
   if (params.generateBid)
     url.searchParams.append('generateBid', params.generateBid);
   if (params.reportWin)
@@ -47,7 +97,7 @@ function createBiddingScriptUrl(params = {}) {
 //
 // The default reportResult() method is empty.
 function createDecisionScriptUrl(uuid, params = {}) {
-  let url = new URL(`${BASE_URL}resources/decision-logic.sub.py`);
+  let url = new URL(`${FLEDGE_BASE_URL}resources/decision-logic.sub.py`);
   url.searchParams.append('uuid', uuid);
   if (params.scoreAd)
     url.searchParams.append('scoreAd', params.scoreAd);
@@ -63,7 +113,7 @@ function createDecisionScriptUrl(uuid, params = {}) {
 // by the decision logic script before accepting a bid. "uuid" is expected to
 // be last.
 function createRenderUrl(uuid, script) {
-  let url = new URL(`${BASE_URL}resources/fenced-frame.sub.py`);
+  let url = new URL(`${FLEDGE_BASE_URL}resources/fenced-frame.sub.py`);
   if (script)
     url.searchParams.append('script', script);
   url.searchParams.append('uuid', uuid);
@@ -136,9 +186,9 @@ async function runBasicFledgeTestExpectingNoWinner(test, testConfig) {
 //
 // Passing worklets in null will cause the test fail.
 //
-// Null worklets test cases are handled under
-// fledge.
-async function runReportTest(test, uuid, reportResult, reportWin) {
+// Null worklets test cases are handled under fledge.
+async function runReportTest(test, uuid, reportResult, reportWin,
+  expectedReports) {
   assert_not_equals(reportResult, null)
   assert_not_equals(reportWin, null)
 
@@ -151,4 +201,5 @@ async function runReportTest(test, uuid, reportResult, reportWin) {
       { decisionLogicUrl: createDecisionScriptUrl(
         uuid, { reportResult })
     });
+  await waitForObservedReports(uuid, expectedReports);
 }

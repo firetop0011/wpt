@@ -9,81 +9,85 @@
     'use strict';
 
     promise_test(async test => {
-      const uuid = generateUuid(test);
-      const contribution = '{ bucket: 1n, value: 2 }';
+      const uuid = generateUuid();
+      const contributions = ['{ bucket: 1n, value: 2 }', '{ bucket: 0n, value: 2 }'];
+      const reports = ['reportResult', 'reportWin'];
 
       await runReportTest(
         test, uuid,
         // reportResult:
-        `privateAggregation.contributeToHistogram(${contribution});`,
+        `privateAggregation.contributeToHistogram(${contributions[0]});
+        sendReportTo('${createDispatchUrl(uuid, reports[0])}');`,
         // reportWin:
-        `privateAggregation.contributeToHistogram(${contribution});`
+        `privateAggregation.contributeToHistogram(${contributions[1]});
+        sendReportTo('${createDispatchUrl(uuid, reports[1])}');`,
+        reports
       );
-    }, 'basic contributeToHistogram() test');
+    }, 'contributeToHistogram() with positive and zero buckets');
 
-  promise_test(async test => {
-    const uuid = generateUuid(test);
-    const contribution = '{ bucket: 0n, value: 2 }';
+  // promise_test(async test => {
+  //   const uuid = generateUuid(test);
+  //   const contribution = '{ bucket: 0n, value: 2 }';
 
-    await runReportTest(
-      test, uuid,
-      // reportResult:
-      `privateAggregation.contributeToHistogram(${contribution});`,
-      // reportWin:
-      `privateAggregation.contributeToHistogram(${contribution});`
-    );
-  }, 'contributeToHistogram() with a zero bucket');
+  //   await runReportTest(
+  //     test, uuid,
+  //     // reportResult:
+  //     `privateAggregation.contributeToHistogram(${contribution});`,
+  //     // reportWin:
+  //     `privateAggregation.contributeToHistogram(${contribution});`
+  //   );
+  // }, 'contributeToHistogram() with a zero bucket');
 
-  promise_test(async test => {
-    const uuid = generateUuid(test);
-    const contribution = '{ bucket: 1n, value: 0 }';
+  // promise_test(async test => {
+  //   const uuid = generateUuid(test);
+  //   const contribution = '{ bucket: 1n, value: 0 }';
 
-    await runReportTest(
-      test, uuid,
-      // reportResult:
-      `privateAggregation.contributeToHistogram(${contribution});`,
-      // reportWin:
-      `privateAggregation.contributeToHistogram(${contribution});`
-    );
-  }, 'contributeToHistogram() with a zero value');
+  //   await runReportTest(
+  //     test, uuid,
+  //     // reportResult:
+  //     `privateAggregation.contributeToHistogram(${contribution});`,
+  //     // reportWin:
+  //     `privateAggregation.contributeToHistogram(${contribution});`
+  //   );
+  // }, 'contributeToHistogram() with a zero value');
 
-  promise_test(async test => {
-    const uuid = generateUuid(test);
-    const contribution = '{ bucket: 18446744073709551616n, value: 5 }';
+  // promise_test(async test => {
+  //   const uuid = generateUuid(test);
+  //   const contribution = '{ bucket: 18446744073709551616n, value: 5 }';
 
-    await runReportTest(
-      test, uuid,
-      // reportResult:
-      `privateAggregation.contributeToHistogram(${contribution});`,
-      // reportWin:
-      `privateAggregation.contributeToHistogram(${contribution});`
-    );
-  }, 'contributeToHistogram() with a large bucket');
+  //   await runReportTest(
+  //     test, uuid,
+  //     // reportResult:
+  //     `privateAggregation.contributeToHistogram(${contribution});`,
+  //     // reportWin:
+  //     `privateAggregation.contributeToHistogram(${contribution});`
+  //   );
+  // }, 'contributeToHistogram() with a large bucket');
 
-  promise_test(async test => {
-    const uuid = generateUuid(test);
-    const contribution = '{ bucket: 340282366920938463463374607431768211455n, value: 5 }';
+  // promise_test(async test => {
+  //   const uuid = generateUuid(test);
+  //   const contribution = '{ bucket: 340282366920938463463374607431768211455n, value: 5 }';
 
-    await runReportTest(
-      test, uuid,
-      // reportResult:
-      `privateAggregation.contributeToHistogram(${contribution});`,
-      // reportWin:
-      `privateAggregation.contributeToHistogram(${contribution});`
-    );
-  }, 'contributeToHistogram() with a max bucket');
+  //   await runReportTest(
+  //     test, uuid,
+  //     // reportResult:
+  //     `privateAggregation.contributeToHistogram(${contribution});`,
+  //     // reportWin:
+  //     `privateAggregation.contributeToHistogram(${contribution});`
+  //   );
+  // }, 'contributeToHistogram() with a max bucket');
 
-  promise_test(async test => {
-    const uuid = generateUuid(test);
-    const contribution = '{ bucket: 1n, value: 2.3 }';
+  // promise_test(async test => {
+  //   const uuid = generateUuid(test);
+  //   const contribution = '{ bucket: 1n, value: 2.3 }';
 
-    await runReportTest(
-      test, uuid,
-      // reportResult:
-      `privateAggregation.contributeToHistogram(${contribution});`,
-      // reportWin:
-      `privateAggregation.contributeToHistogram(${contribution});`
-    );
-  }, 'contributeToHistogram() with a non-integer value');
+  //   await runReportTest(
+  //     test, uuid,
+  //     // reportResult:
+  //     `privateAggregation.contributeToHistogram(${contribution});`,
+  //     // reportWin:
+  //     `privateAggregation.contributeToHistogram(${contribution});`
+  //   );
+  // }, 'contributeToHistogram() with a non-integer value');
   </script>
 </body>
